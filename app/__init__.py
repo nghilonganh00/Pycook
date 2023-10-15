@@ -13,6 +13,7 @@ app.register_blueprint(user_routes.user_bp)
 from app.routes import auth_routes
 app.register_blueprint(auth_routes.auth_bp)
 
+
 from app.routes import food_routes
 app.register_blueprint(food_routes.food_bp)
 
@@ -28,8 +29,5 @@ app.register_blueprint(comment_routes.comment_bp)
 from app.routes import foodhashtag_routes
 app.register_blueprint(foodhashtag_routes.foodhashtag_bp)
 
-from app.routes import unknownRecipe_routes
-app.register_blueprint(unknownRecipe_routes.unknownRecipe_bp)
-
-from app.routes import recipe_routes
-app.register_blueprint(recipe_routes.recipe_bp)
+from app.routes import making_routes
+app.register_blueprint(making_routes.making_bp)

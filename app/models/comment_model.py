@@ -13,6 +13,8 @@ class Comment(db.Model):
     commentContent = db.Column(db.String(255), nullable = False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    food = relationship('Food', back_populates='comments')
+    user = relationship('User', back_populates='comments')
     def __init__(self, user, food, commentContent):
         self.user = user
         self.food = food

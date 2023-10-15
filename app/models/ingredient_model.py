@@ -1,5 +1,5 @@
 from app.extensions.db import db
-
+from sqlalchemy.orm import relationship
 class Ingredient(db.Model):
     __tablename__ = 'ingredients'
 
@@ -10,7 +10,6 @@ class Ingredient(db.Model):
     calo = db.Column(db.Integer, nullable=False)
     fat = db.Column(db.Integer, nullable=False)
     cat = db.Column(db.Integer, nullable=False)
-
     def __init__(self, ingredientName, ingredientImage, unit, calo, fat, cat):
         self.ingredientName = ingredientName
         self.ingredientImage = ingredientImage

@@ -5,20 +5,29 @@ from flask import Blueprint, jsonify, request
 hashtag_bp = Blueprint('hashtag_bp', __name__)
 
 @hashtag_bp.route('/api/hashtag/getAll/', methods=["GET"])
-def get_hashtags():
+def getAllHashtags():
     hashtags = Hashtag.query.all()
-    hashtag_list = [{'id': hashtag.id, 'hashtagName': hashtag.hashtagName} for hashtag in hashtags]
-    return jsonify(hashtag_list)
+    hashtag_list = [{'hashtagName': hashtag.hashtagName} for hashtag in hashtags]
+    return jsonify(hashtag_list), 200
 
 @hashtag_bp.route('/api/hashtag/create/', methods=["POST"])
-def create_hashtag():
+def createNewHashtag():
     hashtagName = request.json.get("hashtagName")
+
+    existHashtag = Hashtag.query.filter_by(hashtagName=hashtagName).all()
+    if existHashtag:
+        return jsonify({"message": f"This hashtag '{hashtagName}' does not exist."}), 404
     
     new_hashtag = Hashtag(hashtagName=hashtagName)
-    db.session.add(new_hashtag)
-    db.session.commit()
+    try:
+        db.session.add(new_hashtag)
+        db.session.commit()
 
-    response_data = {
-        "message": "User registered successfully",
-    }
-    return jsonify(response_data), 201
+        response_data = {
+            "message": "Create new hashtag successfully",
+        }
+        return jsonify(response_data), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+   

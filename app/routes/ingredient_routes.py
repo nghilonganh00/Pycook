@@ -5,6 +5,28 @@ from flask import Blueprint, jsonify, request
 import base64
 ingredient_bp = Blueprint('ingredient_bp', __name__)
 
+@ingredient_bp.route('/api/ingredient/getAll', methods=['GET'])
+def getAllIngredient():
+    try:
+        ingredient_data = Ingredient.query.limit(20).all()
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    ingredients = []
+    for ingredient in ingredient_data:
+        ingredient = {
+            'ingredientId': ingredient.ingredientId,
+            'ingredientName': ingredient.ingredientName,
+            'ingredientImage': f"data:image/png;base64,{base64.b64encode(ingredient.ingredientImage).decode('utf-8') if ingredient.ingredientImage else None}",
+            'unit': ingredient.unit,
+            'calo': ingredient.calo,
+            'fat': ingredient.fat,
+            'cat': ingredient.cat
+        }
+        ingredients.append(ingredient)
+
+    return jsonify(ingredients), 200
+
 @ingredient_bp.route('/api/ingredient/create', methods = ['POST'])
 def createNewIngerdient():
     data = request.json
