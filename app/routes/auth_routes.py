@@ -1,5 +1,5 @@
 import base64
-from app.utils.CoverImage import ConverBase64ToImage, DecodeBase64
+from app.utils.CoverImage import ConverBase64ToImage, DecodeBase64, ConverImageToBase64
 from app.extensions.db import db
 from flask import Blueprint, jsonify, request
 
@@ -13,9 +13,10 @@ auth_bp = Blueprint("auth_bp", __name__)
 def login():
     username = request.json.get("username")
     password = request.json.get("password")
+    print(username, password)
+    user_data = User.query.filter_by(username=username, password=password).first()
+    # print(ConverBase64ToImage(user_data.avatar))
     try:
-        user_data = User.query.filter_by(username=username, password=password).first()
-
         if user_data:
             foods_data = Food.query.filter_by(user_id=user_data.id).all()
             foods_res = []
@@ -23,7 +24,7 @@ def login():
                 foods_res.append(
                     {
                         "foodId": food.foodId,
-                        "foodImage": ConverBase64ToImage(food.foodImage),
+                        "foodImage": ConverImageToBase64(food.foodImage),
                         "foodName": food.foodName,
                         "likeTotal": food.likeTotal,
                         "heartTotal": food.heartTotal,

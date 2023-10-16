@@ -50,9 +50,38 @@ def getAllFood():
     return jsonify(response_data), 200
 
 
-@food_bp.route("/api/food/getFoodByIngredient", methods=["GET"])
-def getFoodByIngredient():
-    ingredient_id_to_query = request.args.get("ingredientId")
+@food_bp.route("/api/food/getByIngredientName", methods=["GET"])
+def getFoodByIngredientName():
+    ingredient_name_to_query = request.args.get("ingredientName")
+    try:
+        foods = Food.query.filter(
+            Food.recipes.ilike(f"%{ingredient_name_to_query}%")
+        ).all()
+        result = []
+        print(ingredient_name_to_query.encode("unicode-escape").decode("utf-8"))
+        for food in foods:
+            chef = {
+                "pycookID": food.user.pycookID,
+                "fullname": food.user.fullname,
+                "avatar": ConverBase64ToImage(food.user.avatar),
+            }
+
+            food_res = {
+                "foodId": food.foodId,
+                "foodName": food.foodName,
+                "foodImage": ConverImageToBase64(food.foodImage),
+                'heartTotal': food.heartTotal,
+                'likeTotal': food.likeTotal,
+                'deliciousTotal': food.deliciousTotal,
+                'created_at': food.created_at,
+                "chef": chef,
+            }
+            result.append(food_res)
+            print(food.recipes)
+        return jsonify(result), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 @food_bp.route("/api/food/getByFoodId", methods=["GET"])
@@ -99,7 +128,7 @@ def getFoodByFoodId():
             "foodImage": ConverImageToBase64(food.foodImage),
             "foodNation": food.foodNation,
             "foodTime": food.foodTime,
-            "recipes": food.recipes,
+            "recipes": food.recipes.split('%&'),
             "makings": makings_res,
             "foodDescription": food.foodDescription,
             "servingFor": food.servingFor,
@@ -180,7 +209,6 @@ def create_food():
 
     foodImage = request.json.get("foodImage").split(",")[1]
     foodImage = ConverBase64ToPath(foodImage)
-    print(request.json)
 
     try:
         user = User.query.get(userId)
@@ -189,7 +217,7 @@ def create_food():
             foodImage=foodImage,
             foodNation=foodNation,
             foodTime=foodTime,
-            recipes=recipes,
+            recipes="%&".join(recipes),
             foodDescription=foodDescription,
             servingFor=servingFor,
             user=user,
