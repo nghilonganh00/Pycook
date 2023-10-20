@@ -3,11 +3,11 @@ from flask import Flask
 from app.extensions.db import db
 
 app = Flask(__name__)
-app.config.from_object('config.config')
+app.config.from_object("config.config")
 
 db.init_app(app)
 
-from app.routes import user_routes  
+from app.routes import user_routes
 app.register_blueprint(user_routes.user_bp)
 
 from app.routes import auth_routes
@@ -26,8 +26,12 @@ app.register_blueprint(hashtag_routes.hashtag_bp)
 from app.routes import comment_routes
 app.register_blueprint(comment_routes.comment_bp)
 
-from app.routes import foodhashtag_routes
-app.register_blueprint(foodhashtag_routes.foodhashtag_bp)
 
 from app.routes import making_routes
 app.register_blueprint(making_routes.making_bp)
+
+from app.routes import favoriteFood_routes
+app.register_blueprint(favoriteFood_routes.favoriteFood_bp)
+
+from app.routes import follower_routes
+app.register_blueprint(follower_routes.follower_bp)

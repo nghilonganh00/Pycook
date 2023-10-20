@@ -21,6 +21,8 @@ class Food(db.Model):
     viewTotal = db.Column(db.Integer, nullable=False, server_default="0")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    favourite_foods = relationship('FavoriteFood', back_populates='food')
+
     comments = relationship("Comment", back_populates="food")
     makings = relationship("Making", back_populates="food")
 

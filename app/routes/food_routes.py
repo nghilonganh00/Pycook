@@ -6,6 +6,7 @@ from sqlalchemy import desc
 from app.models.food_model import Food
 from app.models.user_model import User
 from app.models.making_model import Making
+from app.models.follower_model import Follower
 
 from app.utils.CoverImage import (
     ConverBase64ToImage,
@@ -18,6 +19,7 @@ food_bp = Blueprint("food_bp", __name__)
 
 @food_bp.route("/api/food/getAll", methods=["GET"])
 def getAllFood():
+    # Lấy ra 20 món ăn đầu tiên
     food_data = Food.query.limit(20).all()
 
     response_data = []
@@ -70,10 +72,10 @@ def getFoodByIngredientName():
                 "foodId": food.foodId,
                 "foodName": food.foodName,
                 "foodImage": ConverImageToBase64(food.foodImage),
-                'heartTotal': food.heartTotal,
-                'likeTotal': food.likeTotal,
-                'deliciousTotal': food.deliciousTotal,
-                'created_at': food.created_at,
+                "heartTotal": food.heartTotal,
+                "likeTotal": food.likeTotal,
+                "deliciousTotal": food.deliciousTotal,
+                "created_at": food.created_at,
                 "chef": chef,
             }
             result.append(food_res)
@@ -128,7 +130,7 @@ def getFoodByFoodId():
             "foodImage": ConverImageToBase64(food.foodImage),
             "foodNation": food.foodNation,
             "foodTime": food.foodTime,
-            "recipes": food.recipes.split('%&'),
+            "recipes": food.recipes.split("%&"),
             "makings": makings_res,
             "foodDescription": food.foodDescription,
             "servingFor": food.servingFor,
@@ -162,6 +164,7 @@ def getFoodByName():
                 "foodId": food.foodId,
                 "foodName": food.foodName,
                 "foodImage": ConverImageToBase64(food.foodImage),
+                "recipes": food.recipes.split("%&"),
                 "chef": chef,
             }
             result.append(food_res)
@@ -194,6 +197,66 @@ def getLastestByUserId():
         return jsonify(foods_res), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@food_bp.route("/api/food/getLastestByFollowed", methods=["GET"])
+def getLastestByFollowed():
+    userId = request.args.get("userId")
+    user_data = User.query.filter_by(id=userId).first()
+    followed_users = (
+        db.session.query(User, Food)
+        .join(Follower, Follower.followedId == User.id)
+        .join(Food, Food.user_id == User.id)
+        .filter(Follower.followerId == user_data.id)
+        .order_by(Food.created_at.desc())
+        .group_by(User.id)
+        .order_by(Food.created_at.desc())
+        .distinct(User.id)
+        .all()
+    )
+
+    foods_res = []
+
+    for user, food in followed_users:
+        foods_res.append(
+            {
+                "chef": {
+                    "userId": user.id,
+                    "avatar": user.avatar,
+                    "fullname": user.fullname,
+                },
+                "food": {
+                    "foodId": food.foodId,
+                    "foodName": food.foodName,
+                    "foodImage": ConverImageToBase64(food.foodImage),
+                    "foodDescription": food.foodDescription,
+                    "likeTotal": food.likeTotal,
+                    "heartTotal": food.heartTotal,
+                    "deliciousTotal": food.deliciousTotal,
+                },
+            }
+        )
+    # Bước 1: Lấy danh sách người đã theo dõi
+    # followed_users = (
+    #     db.session.query(User)
+    #     .join(Follower, Follower.followedId == User.id)
+    #     .filter(Follower.followerId == user_data.id)
+    #     .all()
+    # )
+
+    # # Bước 2: Lấy món ăn mới nhất của từng người đã theo dõi
+    # latest_foods = []
+    # for followed_user in followed_users:
+    #     latest_food = (
+    #         db.session.query(Food)
+    #         .filter(Food.user_id == followed_user.id)
+    #         .order_by(Food.created_at.desc())
+    #         .first()
+    #     )
+    #     if latest_food:
+    #         latest_foods.append((followed_user, latest_food))
+
+    return jsonify(foods_res), 200
 
 
 @food_bp.route("/api/food/create", methods=["POST"])
